@@ -45,19 +45,19 @@ pipeline {
         stage('Sonar Scanner') {
             steps {
                 script {
-                    def sonarqubeScannerHome = tool name: 'sql1', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    def sonarqubeScannerHome = tool name: 'sonar', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                     withCredentials([string(credentialsId: 'secret-sonar', variable: 'SONARQUBE_TOKEN')]) {
-                        sh '''#!/bin/bash
+                        sh """
                             ${sonarqubeScannerHome}/bin/sonar-scanner \
                             -Dsonar.host.url=http://sonarqube:9000 \
-                            -Dsonar.login=$SONARQUBE_TOKEN \
+                            -Dsonar.login=${SONARQUBE_TOKEN} \
                             -Dsonar.projectName=${REPOSITORY_NAME} \
                             -Dsonar.projectVersion=${env.BUILD_NUMBER} \
                             -Dsonar.projectKey=${REPOSITORY_NAME} \
                             -Dsonar.sources=./src \
                             -Dsonar.language=java \
                             -Dsonar.java.binaries=.
-                        '''
+                        """
                     }
                 }
             }
