@@ -4,17 +4,20 @@ FROM node:18-alpine as build
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json  ./
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN npm ci
+RUN pnpm install
 
 # Copy source files
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # Production image, copy all the files and run nginx
 FROM nginx:stable-alpine
