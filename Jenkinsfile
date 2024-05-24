@@ -45,7 +45,7 @@ pipeline {
         stage('Sonar Scanner') {
             steps {
                 script {
-                    def sonarqubeScannerHome = tool name: 'sonar', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    def sonarqubeScannerHome = tool name: 'sql1', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                     withCredentials([string(credentialsId: 'secret-sonar', variable: 'sonarLogin')]) {
                         sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=${REPOSITORY_NAME} -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=./src -Dsonar.language=java -Dsonar.java.binaries=."
                     }
