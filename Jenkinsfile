@@ -5,6 +5,7 @@
             DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
             REPOSITORY_NAME = "frontend-equipo1"
             SERVICE_PORT = "3000" // Ajusta este puerto según el equipo
+            SLACK_CHANNEL = "#test-jenkins"
         }
 
         stages {
@@ -48,4 +49,17 @@
                 }
             }
         }
+
+    post {
+        success {
+            slackSend (channell: env.SLACK_CHANNEL, color: 'good',message: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} succedeed")
+        }
+
+         failure {
+            slackSend (channel: env.SLACK_CHANNEL, color: 'danger', message: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.")
+        }
     }
+
+    }
+
+
