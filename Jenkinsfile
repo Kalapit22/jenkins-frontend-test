@@ -4,9 +4,10 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
         REPOSITORY_NAME = "frontend-equipo1"
-        SERVICE_PORT = "3000"
-        SLACK_CHANNEL = '#your-channel'
-        SONAR_SCANNER_HOME = tool 'SonarQube Scanner'
+        SERVICE_PORT = "3000" // Ajusta este puerto según el equipo
+        SONARQUBE_SERVER = 'sonar-jenkins-server' // El nombre que le diste a tu servidor SonarQube
+        SONARQUBE_SCANNER = 'sql1' // El nombre que le diste a tu scanner
+        SONARQUBE_TOKEN = credentials('secret-sonar') // El ID que le diste a tu token
     }
 
     stages {
@@ -22,17 +23,10 @@ pipeline {
                     docker.withRegistry('', 'dockerhub-credentials-id') {
                         def image = docker.build("kalapit/${REPOSITORY_NAME}:${env.GIT_COMMIT}")
                         image.push()
+                        // Tag and push as 'latest'
                         sh "docker tag kalapit/${REPOSITORY_NAME}:${env.GIT_COMMIT} kalapit/${REPOSITORY_NAME}:latest"
                         sh "docker push kalapit/${REPOSITORY_NAME}:latest"
                     }
-                }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') { // 'SonarQube' is the name of the SonarQube server configured in Jenkins
-                    sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=frontend-equipo1 -Dsonar.sources=."
                 }
             }
         }
@@ -50,6 +44,17 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis') {
+            environment {
+                scannerHome = tool name: "${env.SONARQUBE_SCANNER}", type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+            }
+            steps {
+                withSonarQubeEnv("${env.SONARQUBE_SERVER}") {
+                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${env.REPOSITORY_NAME} -Dsonar.sources=./src -Dsonar.host.url=${env.SONARQUBE_SERVER} -Dsonar.login=${env.SONARQUBE_TOKEN}"
+                }
+            }
+        }
+
         stage('Deploy Services') {
             steps {
                 sh 'docker-compose -f /var/jenkins_home/jenkins_docker-compose.yml pull'
@@ -59,11 +64,13 @@ pipeline {
     }
 
     post {
-        success {
-            slackSend (channel: env.SLACK_CHANNEL, color: 'good', message: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} succeeded.")
-        }
-        failure {
-            slackSend (channel: env.SLACK_CHANNEL, color: 'danger', message: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.")
+        always {
+            script {
+                def qg = waitForQualityGate()
+                if (qg.status != 'OK') {
+                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                }
+            }
         }
     }
 }
