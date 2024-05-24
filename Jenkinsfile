@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:stable'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
@@ -17,10 +22,9 @@ pipeline {
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    def image = docker.build("kalapit/${REPOSITORY_NAME}:${env.GIT_COMMIT}")
-                    image.inside {
-                        sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
-                        sh "docker push kalapit/${REPOSITORY_NAME}:${env.GIT_COMMIT}"
+                    docker.withRegistry('', 'dockerhub-credentials-id') {
+                        def image = docker.build("kalapit/${REPOSITORY_NAME}:${env.GIT_COMMIT}")
+                        image.push()
                     }
                 }
             }
