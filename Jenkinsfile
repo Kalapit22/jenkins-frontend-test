@@ -47,7 +47,7 @@ pipeline {
                 script {
                     def sonarqubeScannerHome = tool name: 'sql1', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                     withCredentials([string(credentialsId: 'secret-sonar', variable: 'SONARQUBE_TOKEN')]) {
-                        sh '''
+                        sh '''#!/bin/bash
                             ${sonarqubeScannerHome}/bin/sonar-scanner \
                             -Dsonar.host.url=http://sonarqube:9000 \
                             -Dsonar.login=$SONARQUBE_TOKEN \
