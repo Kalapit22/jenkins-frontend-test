@@ -9,7 +9,7 @@ pipeline {
     }
 
     stages {
-        stage('Clone repository') {
+        stage('Clone repository') { 
             steps {
                 git url: 'https://github.com/Kalapit22/jenkins-frontend-test.git', branch: 'main'
             }
