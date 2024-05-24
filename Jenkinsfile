@@ -42,13 +42,13 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            environment {
-                scannerHome = tool 'sql1'
-            }
+        stage('Sonar Scanner') {
             steps {
-                withSonarQubeEnv('sonar-jenkins-server') {
-                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${REPOSITORY_NAME} -Dsonar.sources=./src -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONARQUBE_TOKEN}"
+                script {
+                    def sonarqubeScannerHome = tool name: 'sonar', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    withCredentials([string(credentialsId: 'secret-sonar', variable: 'sonarLogin')]) {
+                        sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=${REPOSITORY_NAME} -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=./src -Dsonar.language=java -Dsonar.java.binaries=."
+                    }
                 }
             }
         }
