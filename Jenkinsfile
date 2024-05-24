@@ -42,26 +42,26 @@ pipeline {
             }
         }
 
-        // stage('SonarQube Analysis') {
-        //     environment {
-        //         scannerHome = tool 'sql1'
-        //     }
-        //     steps {
-        //         withSonarQubeEnv('sonar-jenkins-server') {
-        //             sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${REPOSITORY_NAME} -Dsonar.sources=./src -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONARQUBE_TOKEN}"
-        //         }
-        //     }
-        // }
+        stage('SonarQube Analysis') {
+            environment {
+                scannerHome = tool 'sql1'
+            }
+            steps {
+                withSonarQubeEnv('sonar-jenkins-server') {
+                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${REPOSITORY_NAME} -Dsonar.sources=./src -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONARQUBE_TOKEN}"
+                }
+            }
+        }
 
-        // stage('Quality Gate') {
-        //     steps {
-        //         script {
-        //             timeout(time: 1, unit: 'MINUTES') {
-        //                 waitForQualityGate abortPipeline: true
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Quality Gate') {
+            steps {
+                script {
+                    timeout(time: 1, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
+                    }
+                }
+            }
+        }
 
         stage('Deploy Services') {
             steps {
