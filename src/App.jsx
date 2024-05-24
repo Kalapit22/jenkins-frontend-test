@@ -29,7 +29,7 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
 
-      <h1>CAMBIOOOO</h1>
+      <h1>CAMBIO NO 1</h1>
 
 
 
