@@ -9,7 +9,7 @@ pipeline {
     }
 
     stages {
-        stage('Clone repository') { 
+        stage('Clone repository') {
             steps {
                 git url: 'https://github.com/Kalapit22/jenkins-frontend-test.git', branch: 'main'
             }
@@ -47,17 +47,19 @@ pipeline {
                 script {
                     def sonarqubeScannerHome = tool name: 'sql1', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                     withCredentials([string(credentialsId: 'secret-sonar', variable: 'SONARQUBE_TOKEN')]) {
-                        sh """
-                            ${sonarqubeScannerHome}/bin/sonar-scanner \
-                            -Dsonar.host.url=http://sonarqube:9000 \
-                            -Dsonar.login=${SONARQUBE_TOKEN} \
-                            -Dsonar.projectName=${REPOSITORY_NAME} \
-                            -Dsonar.projectVersion=${env.BUILD_NUMBER} \
-                            -Dsonar.projectKey=${REPOSITORY_NAME} \
-                            -Dsonar.sources=./src \
-                            -Dsonar.language=java \
-                            -Dsonar.java.binaries=.
-                        """
+                        withSonarQubeEnv('sonar-jenkins-server') {
+                            sh """
+                                ${sonarqubeScannerHome}/bin/sonar-scanner \
+                                -Dsonar.host.url=http://sonarqube:9000 \
+                                -Dsonar.login=${SONARQUBE_TOKEN} \
+                                -Dsonar.projectName=${REPOSITORY_NAME} \
+                                -Dsonar.projectVersion=${env.BUILD_NUMBER} \
+                                -Dsonar.projectKey=${REPOSITORY_NAME} \
+                                -Dsonar.sources=./src \
+                                -Dsonar.language=java \
+                                -Dsonar.java.binaries=.
+                            """
+                        }
                     }
                 }
             }
