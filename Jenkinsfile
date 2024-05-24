@@ -20,6 +20,9 @@ pipeline {
                     docker.withRegistry('', 'dockerhub-credentials-id') {
                         def image = docker.build("kalapit/${REPOSITORY_NAME}:${env.GIT_COMMIT}")
                         image.push()
+                        // Tag and push as 'latest'
+                        sh "docker tag kalapit/${REPOSITORY_NAME}:${env.GIT_COMMIT} kalapit/${REPOSITORY_NAME}:latest"
+                        sh "docker push kalapit/${REPOSITORY_NAME}:latest"
                     }
                 }
             }
