@@ -29,7 +29,7 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
 
-      <h1>CAMBIO EN TIEMPO REALLL</h1>
+      <h1>CASOIJDSAOIDJ</h1>
 
 
 
