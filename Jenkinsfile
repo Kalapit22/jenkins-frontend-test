@@ -3,11 +3,9 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
+        SONARQUBE_TOKEN = credentials('secret-sonar')
         REPOSITORY_NAME = "frontend-equipo1"
         SERVICE_PORT = "3000" // Ajusta este puerto según el equipo
-        SONARQUBE_SERVER = 'http://localhost:9000' // Asegúrate de que la URL sea correcta
-        SONARQUBE_SCANNER = 'sql1' // El nombre que le diste a tu scanner
-        SONARQUBE_TOKEN = credentials('secret-sonar') // El ID que le diste a tu token
     }
 
     stages {
@@ -46,17 +44,21 @@ pipeline {
 
         stage('SonarQube Analysis') {
             environment {
-                scannerHome = tool name: "${env.SONARQUBE_SCANNER}", type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                scannerHome = tool 'sql1'
             }
             steps {
-                withSonarQubeEnv('SonarQube') { // Usa el nombre que configuraste para tu servidor SonarQube en Jenkins
-                    sh """
-                        ${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=${env.REPOSITORY_NAME} \
-                        -Dsonar.sources=./src \
-                        -Dsonar.host.url=${env.SONARQUBE_SERVER} \
-                        -Dsonar.login=${env.SONARQUBE_TOKEN}
-                    """
+                withSonarQubeEnv('sonar-jenkins-server') {
+                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${REPOSITORY_NAME} -Dsonar.sources=./src -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONARQUBE_TOKEN}"
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    timeout(time: 1, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
+                    }
                 }
             }
         }
@@ -65,17 +67,6 @@ pipeline {
             steps {
                 sh 'docker-compose -f /var/jenkins_home/jenkins_docker-compose.yml pull'
                 sh 'docker-compose -f /var/jenkins_home/jenkins_docker-compose.yml up -d'
-            }
-        }
-    }
-
-    post {
-        always {
-            script {
-                def qg = waitForQualityGate()
-                if (qg.status != 'OK') {
-                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
-                }
             }
         }
     }
