@@ -5,7 +5,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
         REPOSITORY_NAME = "frontend-equipo1"
         SERVICE_PORT = "3000" // Ajusta este puerto según el equipo
-        SONARQUBE_SERVER = 'sonar-jenkins-server' // El nombre que le diste a tu servidor SonarQube
+        SONARQUBE_SERVER = 'http://localhost:9000' // Asegúrate de que la URL sea correcta
         SONARQUBE_SCANNER = 'sql1' // El nombre que le diste a tu scanner
         SONARQUBE_TOKEN = credentials('secret-sonar') // El ID que le diste a tu token
     }
@@ -49,8 +49,14 @@ pipeline {
                 scannerHome = tool name: "${env.SONARQUBE_SCANNER}", type: 'hudson.plugins.sonar.SonarRunnerInstallation'
             }
             steps {
-                withSonarQubeEnv("${env.SONARQUBE_SERVER}") {
-                    sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${env.REPOSITORY_NAME} -Dsonar.sources=./src -Dsonar.host.url=${env.SONARQUBE_SERVER} -Dsonar.login=${env.SONARQUBE_TOKEN}"
+                withSonarQubeEnv('SonarQube') { // Usa el nombre que configuraste para tu servidor SonarQube en Jenkins
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=${env.REPOSITORY_NAME} \
+                        -Dsonar.sources=./src \
+                        -Dsonar.host.url=${env.SONARQUBE_SERVER} \
+                        -Dsonar.login=${env.SONARQUBE_TOKEN}
+                    """
                 }
             }
         }
