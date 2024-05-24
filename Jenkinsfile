@@ -52,7 +52,7 @@
 
     post {
         success {
-            slackSend (channell: env.SLACK_CHANNEL, color: 'good',message: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} succedeed")
+            slackSend (channel: env.SLACK_CHANNEL, color: 'good',message: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} succedeed")
         }
 
          failure {
